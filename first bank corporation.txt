@@ -1,0 +1,176 @@
+2. Create a database
+1. employee (employee name, street, city) ,employee name is primary key
+2. works (employee name, company name, salary)
+3. company (company name, city) ,company name is primary key
+4. manages (employee name, manager name)
+Give an expression in SQL for each of the following queries.
+1. Find the names of all employees who work for First Bank Corporation.
+2. Find all employees who do not work for First Bank Coorporation
+3. Find the company that has most employees.
+4. Find all companies located in every in which small bank corporation is located
+5. Find details of employee having salary greater than 10,000.
+6. Update salary of all employees who work for First Bank Corporation by 10%.
+7. Find employee and their managers.
+8. Find the names, street and cities of all employees who work for First Bank 
+Corporation and earn more than 10,000.
+9. Find those companies whose employees earn a higher salary,on average, than th 
+average salary at First Bank Corporation
+
+************************************************************************************************************************
+
+-- Create the "company" database
+CREATE DATABASE company;
+
+-- Use the "company" database
+USE company;
+
+-- Create the "employee" table
+CREATE TABLE employee (
+    employee_name VARCHAR(50) PRIMARY KEY,
+    street VARCHAR(50),
+    city VARCHAR(50)
+);
+
+***********************************************************************************************************************
+-- Create the "works" table
+CREATE TABLE works (
+    employee_name VARCHAR(50),
+    company_name VARCHAR(50),
+    salary DECIMAL(10, 2),
+    PRIMARY KEY (employee_name, company_name)
+);
+
+***********************************************************************************************************************
+
+-- Create the "company" table
+CREATE TABLE company (
+    company_name VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+***********************************************************************************************************************
+
+-- Create the "manages" table
+CREATE TABLE manages (
+    employee_name VARCHAR(50),
+    manager_name VARCHAR(50),
+    PRIMARY KEY (employee_name, manager_name)
+);
+
+***********************************************************************************************************************
+
+-- Insert data into the "employee" table
+INSERT INTO employee (employee_name, street, city) VALUES
+    ('John', '123 Main St', 'New York'),
+    ('Alice', '456 Elm St', 'Los Angeles'),
+    ('Bob', '789 Oak St', 'New York'),
+    ('Eve', '101 Pine St', 'San Francisco');
+
+***********************************************************************************************************************
+
+-- Insert data into the "company" table
+INSERT INTO company (company_name, city) VALUES
+    ('First Bank Corporation', 'New York'),
+    ('Small Bank Corporation', 'Los Angeles'),
+    ('Tech Inc', 'San Francisco'),
+    ('Mega Corp', 'New York');
+
+***********************************************************************************************************************
+
+-- Insert data into the "works" table
+INSERT INTO works (employee_name, company_name, salary) VALUES
+    ('John', 'First Bank Corporation', 12000.00),
+    ('Alice', 'Tech Inc', 11000.00),
+    ('Bob', 'First Bank Corporation', 12500.00),
+    ('Eve', 'Small Bank Corporation', 10500.00);
+
+***********************************************************************************************************************
+
+-- Insert data into the "manages" table
+INSERT INTO manages (employee_name, manager_name) VALUES
+    ('Alice', 'John'),
+    ('Bob', 'John');
+
+***********************************************************************************************************************
+
+-- Now, let's solve the queries
+
+-- 1. Find the names of all employees who work for First Bank Corporation.
+SELECT e.employee_name
+FROM employee e
+INNER JOIN works w ON e.employee_name = w.employee_name
+WHERE w.company_name = 'First Bank Corporation';
+
+***********************************************************************************************************************
+
+-- 2. Find all employees who do not work for First Bank Corporation.
+SELECT e.employee_name
+FROM employee e
+WHERE e.employee_name NOT IN (SELECT employee_name FROM works WHERE company_name = 'First Bank Corporation');
+
+***********************************************************************************************************************
+
+-- 3. Find the company that has the most employees.
+SELECT w.company_name
+FROM works w
+GROUP BY w.company_name
+HAVING COUNT(*) = (
+    SELECT COUNT(*)
+    FROM works
+    GROUP BY company_name
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+);
+
+***********************************************************************************************************************
+-- 4. Find all companies located in every city in which Small Bank Corporation is located.
+SELECT c.company_name
+FROM company c
+WHERE c.city IN (
+    SELECT city
+    FROM company
+    WHERE company_name = 'Small Bank Corporation'
+);
+
+***********************************************************************************************************************
+
+-- 5. Find details of employees having a salary greater than 10,000.
+SELECT e.*
+FROM employee e
+INNER JOIN works w ON e.employee_name = w.employee_name
+WHERE w.salary > 10000;
+
+***********************************************************************************************************************
+
+-- 6. Update the salary of all employees who work for First Bank Corporation by 10%.
+UPDATE works
+SET salary = salary * 1.10
+WHERE company_name = 'First Bank Corporation';
+
+***********************************************************************************************************************
+
+-- 7. Find employees and their managers.
+SELECT e.employee_name, m.manager_name
+FROM employee e
+LEFT JOIN manages m ON e.employee_name = m.employee_name;
+
+***********************************************************************************************************************
+
+-- 8. Find the names, street, and cities of all employees who work for First Bank Corporation and earn more than 10,000.
+SELECT e.employee_name, e.street, e.city
+FROM employee e
+INNER JOIN works w ON e.employee_name = w.employee_name
+WHERE w.company_name = 'First Bank Corporation' AND w.salary > 10000;
+
+***********************************************************************************************************************
+
+-- 9. Find those companies whose employees earn a higher salary, on average, than the average salary at First Bank Corporation.
+SELECT c.company_name
+FROM company c
+INNER JOIN works w ON c.company_name = w.company_name
+GROUP BY c.company_name
+HAVING AVG(w.salary) > (
+    SELECT AVG(salary)
+    FROM works
+    WHERE company_name = 'First Bank Corporation'
+);
