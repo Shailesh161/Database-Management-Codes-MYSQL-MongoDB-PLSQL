@@ -1,0 +1,155 @@
+3. The following tables form part of a database held in a relational DBMS:
+Hotel (HotelNo, Name, City) HotelNo is the primary key
+Room (RoomNo, HotelNo, Type, Price)
+Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+Guest (GuestNo, GuestName, GuestAddress) GuestNo is primary key
+Room contains room details for each hotel and (HotelNo, RoomNo) forms the 
+primary key.Booking contains details of the bookings and the primary key comprises 
+(HotelNo, GuestNo and DateFrom)
+Solve following queries by SQL
+1. List full details of all hotels.
+2. How many hotels are there?
+3. List the price and type of all rooms at the Grosvenor Hotel.
+4. List the number of rooms in each hotel.
+5. Update the price of all rooms by 5%.
+6. List full details of all hotels in London.
+7. What is the average price of a room?
+8. List all guests currently staying at the Grosvenor Hotel.
+9. List the number of rooms in each hotel in London.
+10.Create one view on above database and query it.
+
+*******************************************************************************************
+-- Create the "hotel" database
+CREATE DATABASE hotel;
+
+
+-- Use the "hotel" database
+USE hotel;
+
+
+-- Create the "Hotel" table
+CREATE TABLE Hotel (
+    HotelNo INT PRIMARY KEY,
+    Name VARCHAR(50),
+    City VARCHAR(50)
+);
+
+
+
+-- Create the "Room" table
+CREATE TABLE Room (
+    RoomNo INT,
+    HotelNo INT,
+    Type VARCHAR(50),
+    Price DECIMAL(10, 2),
+    PRIMARY KEY (RoomNo, HotelNo)
+);
+
+
+-- Create an index on the (RoomNo, HotelNo) columns
+CREATE INDEX idx_room ON Room (RoomNo, HotelNo);
+
+-- Create the "Guest" table
+CREATE TABLE Guest (
+    GuestNo INT PRIMARY KEY,
+    GuestName VARCHAR(50),
+    GuestAddress VARCHAR(100)
+);
+
+
+-- Create the "Booking" table with foreign key references
+CREATE TABLE Booking (
+    HotelNo INT,
+    GuestNo INT,
+    DateFrom DATE,
+    DateTo DATE,
+    RoomNo INT,
+    PRIMARY KEY (HotelNo, GuestNo, DateFrom),
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo),
+    FOREIGN KEY (RoomNo, HotelNo) REFERENCES Room(RoomNo, HotelNo)
+);
+
+
+-- Insert sample data into the tables
+-- You can replace this with your own data
+-- Insert data into the "Hotel" table
+INSERT INTO Hotel (HotelNo, Name, City) VALUES
+    (1, 'Hotel A', 'New York'),
+    (2, 'Grosvenor Hotel', 'London'),
+    (3, 'Hotel B', 'Paris');
+
+
+-- Insert data into the "Room" table
+INSERT INTO Room (RoomNo, HotelNo, Type, Price) VALUES
+    (101, 1, 'Single', 100.00),
+    (102, 1, 'Double', 150.00),
+    (201, 2, 'Single', 120.00),
+    (202, 2, 'Double', 180.00),
+    (301, 3, 'Single', 110.00),
+    (302, 3, 'Double', 160.00);
+
+
+-- Insert data into the "Guest" table
+INSERT INTO Guest (GuestNo, GuestName, GuestAddress) VALUES
+    (1, 'John Smith', '123 Main St, New York'),
+    (2, 'Alice Johnson', '456 Elm St, London'),
+    (3, 'Bob Davis', '789 Oak St, Paris');
+
+
+-- Insert data into the "Booking" table
+INSERT INTO Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo) VALUES
+    (1, 1, '2023-01-01', '2023-01-05', 101),
+    (2, 2, '2023-02-01', '2023-02-05', 201),
+    (3, 3, '2023-03-01', '2023-03-05', 301);
+
+
+-- Queries
+
+-- 1. List full details of all hotels.
+SELECT * FROM Hotel;
+
+
+-- 2. How many hotels are there?
+SELECT COUNT(*) AS num_hotels FROM Hotel;
+
+
+-- 3. List the price and type of all rooms at the Grosvenor Hotel.
+SELECT Room.Price, Room.Type
+FROM Room
+WHERE Room.HotelNo = (SELECT HotelNo FROM Hotel WHERE Name = 'Grosvenor Hotel');
+
+
+-- 4. List the number of rooms in each hotel.
+SELECT Hotel.Name, COUNT(Room.RoomNo) AS num_rooms
+FROM Hotel
+LEFT JOIN Room ON Hotel.HotelNo = Room.HotelNo
+GROUP BY Hotel.HotelNo, Hotel.Name;
+
+
+-- 5. Update the price of all rooms by 5%.
+UPDATE Room
+SET Price = Price * 1.05;
+
+
+-- 6. List full details of all hotels in London.
+SELECT * FROM Hotel WHERE City = 'London';
+
+
+-- 7. What is the average price of a room?
+SELECT AVG(Price) AS avg_price FROM Room;
+
+
+-- 8. List all guests currently staying at the Grosvenor Hotel.
+SELECT Guest.GuestName
+FROM Guest
+INNER JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+INNER JOIN Room ON Booking.RoomNo = Room.RoomNo
+WHERE Room.HotelNo = (SELECT HotelNo FROM Hotel WHERE Name = 'Grosvenor Hotel');
+
+
+-- 9. List the number of rooms in each hotel in London.
+SELECT Hotel.Name, COUNT(Room.RoomNo) AS num_rooms
+FROM Hotel
+LEFT JOIN Room ON Hotel.HotelNo = Room.HotelNo
+WHERE Hotel.City = 'London'
+GROUP BY Hotel.HotelNo, Hotel.Name;

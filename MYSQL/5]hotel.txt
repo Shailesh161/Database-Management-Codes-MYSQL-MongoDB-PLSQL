@@ -1,0 +1,107 @@
+--The following tables form part of a database held in a relational DBMS:
+Hotel (HotelNo, Name, City) HotelNo is the primary key
+Room (RoomNo, HotelNo, Type, Price)
+Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo)
+Guest (GuestNo, GuestName, GuestAddress)
+Solve following queries by SQL
+1. List full details of all hotels.
+2. How many hotels are there?
+3. List the price and type of all rooms at the Grosvenor Hotel.
+4. List the number of rooms in each hotel
+5. List all guests currently staying at the Grosvenor Hotel.
+6. List all double or family rooms with a price below £40.00 per night, in ascending order of 
+price.
+7. How many different guests have made bookings for August?
+8. What is the total income from bookings for the Grosvenor Hotel today?
+9. What is the most commonly booked room type for each hotel in London?
+10. Update the price of all rooms by 5%.
+
+******************************************************************************************
+
+CREATE DATABASE IF NOT EXISTS HotelDB;
+USE HotelDB;
+
+CREATE TABLE IF NOT EXISTS Hotel 
+(
+    HotelNo INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(255),
+    City VARCHAR(255)
+);
+
+-- Create the Room table
+CREATE TABLE IF NOT EXISTS Room 
+(
+    RoomNo INT AUTO_INCREMENT PRIMARY KEY,
+    HotelNo INT,
+    Type VARCHAR(255),
+    Price DECIMAL(10, 2),
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo)
+);
+
+CREATE TABLE IF NOT EXISTS Booking 
+(
+    HotelNo INT,
+    GuestNo INT,
+    DateFrom DATE,
+    DateTo DATE,
+    RoomNo INT,
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo),
+    FOREIGN KEY (RoomNo) REFERENCES Room(RoomNo)
+);
+
+CREATE TABLE IF NOT EXISTS Guest (
+    GuestNo INT AUTO_INCREMENT PRIMARY KEY,
+    GuestName VARCHAR(255),
+    GuestAddress VARCHAR(255)
+);
+
+-- Insert sample data
+INSERT INTO Hotel (Name, City) VALUES
+    ('Grosvenor Hotel', 'London'),
+    ('Taj Mahal Palace', 'Mumbai'),
+    ('Leela Palace', 'Delhi');
+
+INSERT INTO Room (HotelNo, Type, Price) VALUES
+    (1, 'Double', 80.00),
+    (1, 'Single', 60.00),
+    (2, 'Double', 100.00),
+    (2, 'Family', 120.00),
+    (3, 'Single', 70.00);
+
+INSERT INTO Guest (GuestName, GuestAddress) VALUES
+    ('John Doe', '123 Main St, London'),
+    ('Jane Smith', '456 Park Ave, Mumbai'),
+    ('Alice Johnson', '789 Elm St, Delhi');
+
+INSERT INTO Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo) VALUES
+    (1, 1, '2023-08-01', '2023-08-05', 1),
+    (2, 2, '2023-08-03', '2023-08-07', 3),
+    (3, 3, '2023-08-02', '2023-08-06', 5);
+
+-- Run the queries:
+
+-- 1. List full details of all hotels.
+SELECT * FROM Hotel;
+
+-- 2. How many hotels are there?
+SELECT COUNT(*) AS TotalHotels FROM Hotel;
+
+-- 3. List the price and type of all rooms at the Grosvenor Hotel.
+SELECT Type, Price
+FROM Room
+WHERE HotelNo = (SELECT HotelNo FROM Hotel WHERE Name = 'Grosvenor Hotel');
+
+-- 4. List the number of rooms in each hotel.
+SELECT Hotel.Name, COUNT(Room.RoomNo) AS NumberOfRooms
+FROM Hotel
+LEFT JOIN Room ON Hotel.HotelNo = Room.HotelNo
+GROUP BY Hotel.HotelNo, Hotel.Name;
+
+-- 5. List all guests currently staying at the Grosvenor Hotel.
+SELECT Guest.GuestName
+FROM Guest
+INNER JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+INNER JOIN Room ON Booking.RoomNo = Room.RoomNo
+INNER JOIN Hotel ON Booking.HotelNo = Hotel.HotelNo
+WHERE Hotel.Name = 'Grosvenor Hotel' AND DateFrom <= CURDATE() AND DateTo >= CURDATE();
+

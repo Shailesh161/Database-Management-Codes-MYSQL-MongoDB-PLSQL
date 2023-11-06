@@ -1,0 +1,117 @@
+10. Create the following tables. And Solve following queries by SQL
+1. Deposit (actno,cname,bname,amount,adate)
+2. Branch (bname,city)
+3. Customers (cname, city)
+4. Borrow(loanno,cname,bname, amount)
+Add primary key and foreign key wherever applicable.
+Insert data into the above created tables.
+a. Display names of all branches located in city Bombay.
+b. Display account no. and amount of depositors.
+c. Update the city of customers Anil from Pune to Mumbai
+d. Find the number of depositors in the bank
+e. Calculate Min,Max amount of customers.
+f. Create an index on deposit table
+g. Create View on Borrow table
+
+************************************************************************************************
+
+-- Drop the database if it exists
+DROP DATABASE IF EXISTS IndianBankDB;
+
+-- Create a new database
+CREATE DATABASE IndianBankDB;
+
+-- Switch to the new database
+USE IndianBankDB;
+
+-- Create the Deposit table
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(255),
+    bname VARCHAR(255),
+    amount DECIMAL(10, 2),
+    adate DATE
+);
+
+-- Create the Branch table
+CREATE TABLE Branch (
+    bname VARCHAR(255) PRIMARY KEY,
+    city VARCHAR(255)
+);
+
+-- Create the Customers table
+CREATE TABLE Customers (
+    cname VARCHAR(255) PRIMARY KEY,
+    city VARCHAR(255)
+);
+
+-- Create the Borrow table
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(255),
+    bname VARCHAR(255),
+    amount DECIMAL(10, 2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+-- Insert sample data with Indian names and banks
+INSERT INTO Deposit (actno, cname, bname, amount, adate) VALUES
+    (1, 'Anil', 'SBI', 5000.00, '1996-03-15'),
+    (2, 'Vijay', 'HDFC', 6000.00, '1996-06-20'),
+    (3, 'Priya', 'ICICI', 3500.00, '1996-11-05'),
+    (4, 'Anita', 'SBI', 4500.00, '1997-02-18'),
+    (5, 'Ramesh', 'HDFC', 4200.00, '1997-04-10');
+
+INSERT INTO Branch (bname, city) VALUES
+    ('SBI', 'Mumbai'),
+    ('HDFC', 'Delhi'),
+    ('ICICI', 'Bangalore');
+
+INSERT INTO Customers (cname, city) VALUES
+    ('Anil', 'Pune'),
+    ('Vijay', 'Delhi'),
+    ('Priya', 'Bangalore'),
+    ('Anita', 'Mumbai'),
+    ('Ramesh', 'Delhi');
+
+-- Insert data into the Borrow table
+INSERT INTO Borrow (loanno, cname, bname, amount) VALUES
+    (101, 'Anil', 'SBI', 2500.00),
+    (102, 'Vijay', 'HDFC', 3000.00),
+    (103, 'Priya', 'ICICI', 2200.00);
+
+-- Run the queries:
+
+-- a. Display names of all branches located in the city Bombay.
+SELECT bname
+FROM Branch
+WHERE city = 'Mumbai';
+
+-- b. Display account no. and amount of depositors.
+SELECT actno, amount
+FROM Deposit;
+
+-- c. Update the city of customers Anil from Pune to Mumbai.
+UPDATE Customers
+SET city = 'Mumbai'
+WHERE cname = 'Anil';
+
+-- d. Find the number of depositors in the bank.
+SELECT COUNT(DISTINCT cname) AS num_depositors
+FROM Deposit;
+
+-- e. Calculate Min and Max amount of customers.
+SELECT MIN(amount) AS min_amount, MAX(amount) AS max_amount
+FROM Deposit;
+
+-- f. Create an index on the deposit table.
+CREATE INDEX deposit_index ON Deposit (cname, bname);
+
+-- g. Create a View on Borrow table.
+CREATE VIEW BorrowView AS
+SELECT loanno, cname, bname, amount
+FROM Borrow;
+
+-- Display the created view
+SELECT * FROM BorrowView;
