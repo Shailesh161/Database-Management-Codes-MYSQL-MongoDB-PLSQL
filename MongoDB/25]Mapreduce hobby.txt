@@ -1,0 +1,93 @@
+25. Using MapReduce in mongodb solve following queries on given below collection.
+{
+“id” : 0,
+“name” : “Leanne Flinn”,
+“email” : “leanne.flinn@unilogic.com”,
+“work” :”Unilogic” ,
+“age” :27
+“gender” :”Male”
+“Salary” :16660
+“hobbies”:”Acrobatics,Photography,Papier-Mache”
+}
+1. Get the count of Males and Females
+2. Count the number of users in each hobby
+
+**************************************************************
+
+use hi
+db.createCollection("hi")
+db.hi.insertMany([
+{
+  "id": 1,
+  "name": "John Smith",
+  "email": "john.smith@example.com",
+  "work": "Tech Corp",
+  "age": 32,
+  "gender": "Male",
+  "Salary": 55000,
+  "hobbies": "Hiking,Photography,Reading"
+},{
+  "id": 2,
+  "name": "Jane Doe",
+  "email": "jane.doe@example.com",
+  "work": "Data Solutions",
+  "age": 29,
+  "gender": "Female",
+  "Salary": 48000,
+  "hobbies": "Swimming,Painting,Traveling"
+},{
+  "id": 3,
+  "name": "Mike Johnson",
+  "email": "mike.johnson@example.com",
+  "work": "InfoTech",
+  "age": 35,
+  "gender": "Male",
+  "Salary": 62000,
+  "hobbies": "Gardening,Music,Chess"
+},{
+  "id": 4,
+  "name": "Emily White",
+  "email": "emily.white@example.com",
+  "work": "Innovate Labs",
+  "age": 28,
+  "gender": "Female",
+  "Salary": 52000,
+  "hobbies": "Cooking,Yoga,Dancing"
+},{
+  "id": 5,
+  "name": "David Lee",
+  "email": "david.lee@example.com",
+  "work": "Softworks Inc",
+  "age": 30,
+  "gender": "Male",
+  "Salary": 58000,
+  "hobbies": "Cycling,Reading,Photography"
+}]);
+
+
+db.runCommand({
+  mapReduce: "hi",
+  map: function() {
+    emit(this.gender, 1);
+  },
+  reduce: function(key, values) {
+    return Array.sum(values);
+  },
+  out: "gender_count"
+})
+db.gender_count.find()
+
+db.runCommand({
+  mapReduce: "hi",
+  map: function() {
+    var hobbies = this.hobbies.split(",");
+    for (var i = 0; i < hobbies.length; i++) {
+      emit(hobbies[i], 1);
+    }
+  },
+  reduce: function(key, values) {
+    return Array.sum(values);
+  },
+  out: "hobby_count"
+})
+db.hobby_count.find()

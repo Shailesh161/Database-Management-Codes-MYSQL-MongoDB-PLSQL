@@ -1,0 +1,120 @@
+20
+1.Create Database DYPIT
+2. Create following Collections
+Teachers(Tname,dno,dname,experience,salary,date_of_joining )
+Students(Sname,roll_no,class)
+3. Find the information about two teachers
+4. Find the information about all teachers of computer department
+5. Find the information about all teachers of computer,IT,and e&TC department
+6. Find the information about all teachers of computer,IT,and E&TC department having salary 
+greate than or equl to 25000/-
+7. Find the student information having roll_no = 25 or Sname=xyz
+8. Update the experience of teacher-praveen to 10years, if the entry is not available in database
+consider the entry as new entry.
+9. Update the deparment of all the teachers working in IT deprtment to COMP
+10. find the teachers name and their experience from teachers collection
+11. Using Save() method insert one entry in department collection
+13. Delete all the doccuments from teachers collection having IT dept.
+14. display with pretty() method, the first 5 documents in teachers collection in ascending order
+
+********************************************************************************************
+use DYPIT
+
+// Create the Teachers collection
+db.createCollection("Teachers")
+db.Teachers.insertMany([
+    {
+        Tname: "Praveen",
+        dno: "CSE001",
+        dname: "Computer",
+        experience: 8,
+        salary: 30000,
+        date_of_joining: new Date("2015-03-15")
+    },
+    {
+        Tname: "Rajesh",
+        dno: "IT001",
+        dname: "IT",
+        experience: 7,
+        salary: 28000,
+        date_of_joining: new Date("2014-08-20")
+    },
+    {
+        Tname: "Anita",
+        dno: "E&TC001",
+        dname: "E&TC",
+        experience: 6,
+        salary: 26000,
+        date_of_joining: new Date("2013-05-10")
+    },
+    {
+        Tname: "Deepak",
+        dno: "CSE002",
+        dname: "Computer",
+        experience: 5,
+        salary: 24000,
+        date_of_joining: new Date("2012-09-22")
+    },
+    {
+        Tname: "Sonia",
+        dno: "IT002",
+        dname: "IT",
+        experience: 4,
+        salary: 27000,
+        date_of_joining: new Date("2011-07-18")
+    }
+])
+
+// Create the Students collection
+db.createCollection("Students")
+db.Students.insertMany([
+    {
+        Sname: "Rahul",
+        roll_no: 1,
+        class: "XII"
+    },
+    {
+        Sname: "Priya",
+        roll_no: 2,
+        class: "X"
+    },
+    {
+        Sname: "Suresh",
+        roll_no: 3,
+        class: "XI"
+    }
+])
+
+// Task 3: Find the information about two teachers
+db.Teachers.find().limit(2).pretty()
+
+// Task 4: Find the information about all teachers of the Computer department
+db.Teachers.find({ dname: "Computer" }).pretty()
+
+// Task 5: Find the information about all teachers of Computer, IT, and E&TC department
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] }).pretty()
+
+// Task 6: Find the information about all teachers of Computer, IT, and E&TC department having salary greater than or equal to 25000/-
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] }, salary: { $gte: 25000 } }).pretty()
+
+// Task 7: Find the student information having roll_no = 25 or Sname = "xyz"
+db.Students.find({ $or: [{ roll_no: 25 }, { Sname: "xyz" }] }).pretty()
+
+// Task 8: Update the experience of teacher "Praveen" to 10 years (add new entry if not available)
+db.Teachers.updateOne({ Tname: "Praveen" }, { $set: { experience: 10 } }, { upsert: true })
+
+// Task 9: Update the department of all teachers working in IT department to "COMP"
+db.Teachers.updateMany({ dname: "IT" }, { $set: { dname: "COMP" })
+
+// Task 10: Find the teachers' names and their experience from the Teachers collection
+db.Teachers.find({}, { _id: 0, Tname: 1, experience: 1 }).pretty()
+
+// Task 11: Using the Save() method, insert one entry in the department collection
+db.createCollection("department")
+db.department.insert({ dno: "MECH001", dname: "Mechanical" })
+
+// Task 13: Delete all documents from the Teachers collection having "IT" department
+db.Teachers.deleteMany({ dname: "IT" })
+
+// Task 14: Display the first 5 documents in the Teachers collection in ascending order
+db.Teachers.find().sort({ Tname: 1 }).limit(5).pretty()

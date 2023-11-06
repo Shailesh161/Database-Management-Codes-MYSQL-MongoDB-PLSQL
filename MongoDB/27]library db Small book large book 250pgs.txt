@@ -1,0 +1,26 @@
+27.Create a database called ‘library’, create a collection called ‘books’.find the number of books 
+having pages less 250 pages and consider ad small book and greater than 250 consider as Big 
+book using Map Reduce function.
+
+db.books.insertMany([{name:"A",pages:200},{name:"B",pages:300},{name:"C",pages:150},{name:"D",pages:100}]);
+
+var map = function() {  
+    var category;  
+    if ( this.pages >= 250 )   
+    category = 'Big Books';  
+    else   
+    category = "Small Books";  
+    emit(category, {name: this.name});  
+    };  
+
+var reduce = function(key, values) {  
+    var sum = 0;  
+    values.forEach(function(doc) {  
+    sum += 1;  
+    });  
+    return {books: sum};  
+    };  
+
+db.books.mapReduce(map, reduce, {out: "book_results"});
+
+db.book_results.find();

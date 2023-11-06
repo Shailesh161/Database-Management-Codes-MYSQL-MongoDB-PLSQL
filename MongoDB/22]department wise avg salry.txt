@@ -1,0 +1,132 @@
+22. Create Database DYPIT using MongoDB
+Create following Collections
+Teachers(Tname,dno,dname,experience,salary,date_of_joining )
+Students(Sname,roll_no,class)
+1. Display the department wise average salary
+2. display the no. Of employees working in each department
+3. Display the department wise total salary of departments having total salary greater than
+or equals to 50000/-
+4. Write the queries using the different operators like max, min. Etc.
+5. Create unique index on any field for above given collections
+6. Create compound index on any fields for above given collections
+7. Show all the indexes created in the database DYPIT
+8. Show all the indexes created in above collections.
+
+use DYPIT
+
+Tables:-
+
+db.createCollection("Teachers")
+db.createCollection("Students")
+
+Values:-
+
+db.Teachers.insertMany([
+  {
+    Tname: "Teacher1",
+    dno: "Computer",
+    dname: "Computer Science",
+    experience: 5,
+    salary: 12000,
+    date_of_joining: new Date("2022-01-15")
+  },
+  {
+    Tname: "Teacher2",
+    dno: "IT",
+    dname: "Information Technology",
+    experience: 8,
+    salary: 11000,
+    date_of_joining: new Date("2017-04-20")
+  },
+  {
+    Tname: "Teacher3",
+    dno: "E&TC",
+    dname: "Electronics & Telecommunication",
+    experience: 12,
+    salary: 9500,
+    date_of_joining: new Date("2015-08-10")
+  }
+])
+
+db.Students.insertMany([
+  {
+    Sname: "Alice",
+    roll_no: 1,
+    class: "A"
+  },
+  {
+    Sname: "Bob",
+    roll_no: 2,
+    class: "B"
+  },
+  {
+    Sname: "Charlie",
+    roll_no: 3,
+    class: "C"
+  }
+])
+
+Querys:-
+
+db.Teachers.aggregate([
+  {
+    $group: {
+      _id: "$dno",
+      averageSalary: { $avg: "$salary" }
+    }
+  }
+])
+
+
+db.Teachers.aggregate([
+  {
+    $group: {
+      _id: "$dno",
+      count: { $sum: 1 }
+    }
+  }
+])
+
+db.Teachers.aggregate([
+  {
+    $group: {
+      _id: "$dno",
+      totalSalary: { $sum: "$salary" }
+    }
+  },
+  {
+    $match: {
+      totalSalary: { $gte: 50000 }
+    }
+  }
+])
+
+db.Teachers.aggregate([
+  {
+    $group: {
+      _id: "$dno",
+      maxSalary: { $max: "$salary" },
+      minSalary: { $min: "$salary" }
+    }
+  }
+])
+
+db.Teachers.createIndex({ Tname: 1 }, { unique: true })
+
+db.Teachers.createIndex({ dno: 1, experience: 1 })
+
+db.getCollectionNames().forEach(function (collectionName) {
+    var indexes = db.getCollection(collectionName).getIndexes();
+    print("Indexes for collection " + collectionName + ": ");
+    printjson(indexes);
+})
+
+// Indexes for the "Teachers" collection
+var teachersIndexes = db.Teachers.getIndexes();
+print("Indexes for the 'Teachers' collection: ");
+printjson(teachersIndexes);
+
+// Indexes for the "Students" collection
+var studentsIndexes = db.Students.getIndexes();
+print("Indexes for the 'Students' collection: ");
+printjson(studentsIndexes);

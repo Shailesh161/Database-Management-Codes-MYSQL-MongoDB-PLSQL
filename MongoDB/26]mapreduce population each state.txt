@@ -1,0 +1,66 @@
+26. Using MapReduce in mongodb solve following queries on given below collection.
+1. Import zip.json.
+2. Find total population in each state.
+
+use ASS
+
+db.createCollection("city")
+
+db.city.insertMany([{city:"mumbai",
+ type:"urban",
+ state:"MH",
+ population:"5600000"
+ },
+{city:"mumbai",
+ type:"urban",
+ state:"MH",
+ population:"560000"
+ },
+{city:"chamorshi",
+ type:"rural",
+ state:"MH",
+ population:"10000"
+ },
+{city:"Rampur",
+ type:"rural",
+ state:"MH",
+ population:"1000"
+ },
+{city:"nagpur",
+ type:"urban",
+ state:"MH",
+ population:"260000"
+ },
+{city:"Chennai",
+ type:"urban",
+ state:"TN",
+ population:"1000000"
+ },
+{city:"vellore",
+ type:"urban",
+ state:"TN",
+ population:"760000"
+ },
+{city:"Melur",
+ type:"rural",
+ state:"TN",
+ population:"5000"
+ },
+{city:"Thiruvaiyaru",
+ type:"rural",
+ state:"TN",
+ population:"5600"
+ }])
+
+db.runCommand({
+  mapReduce: "city",  
+  map: function() {
+    emit(this.state, parseInt(this.population));
+  },
+  reduce: function(key, values) {
+    return Array.sum(values);
+  },
+  out: "statewise_population"
+})
+
+db.statewise_population.find()

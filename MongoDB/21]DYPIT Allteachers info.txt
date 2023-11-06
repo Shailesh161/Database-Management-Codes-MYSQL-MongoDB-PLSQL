@@ -1,0 +1,119 @@
+21]Create Database DYPIT using MongoDB
+Create following Collections
+Teachers(Tname,dno,dname,experience,salary,date_of_joining )
+Students(Sname,roll_no,class)
+1. Find the information about all teachers
+2. Find the average salary teachers of computer department
+3. Find the minimum and maximum salary of e&TC department teachers
+4. Find the information about all teachers of computer,IT,and E&TC department having 
+salary greate than or equl to 10000/-
+5. Find the student information having roll_no = 2 or Sname=xyz
+6. Update the experience of teacher-praveen to 10years, if the entry is not available in 
+database consider the entry as new entry.
+7. Update the deparment of all the teachers working in IT deprtment to COMP
+8. find the teachers name and their experience from teachers collection
+9. Using Save() method insert one entry in department collection
+10. Find the total salary all teachers4
+*****************************************************************************************************
+
+// Create Database DYPIT
+use DYPIT
+
+// Create the Teachers collection
+db.createCollection("Teachers")
+db.Teachers.insertMany([
+    {
+        Tname: "Praveen",
+        dno: "CSE001",
+        dname: "Computer",
+        experience: 8,
+        salary: 12000,
+        date_of_joining: new Date("2020-03-15")
+    },
+    {
+        Tname: "Rajesh",
+        dno: "IT001",
+        dname: "IT",
+        experience: 7,
+        salary: 11000,
+        date_of_joining: new Date("2019-08-20")
+    },
+    {
+        Tname: "Anita",
+        dno: "E&TC001",
+        dname: "E&TC",
+        experience: 6,
+        salary: 10000,
+        date_of_joining: new Date("2018-05-10")
+    }
+])
+
+// Create the Students collection
+db.createCollection("Students")
+db.Students.insertMany([
+    {
+        Sname: "Rahul",
+        roll_no: 1,
+        class: "XII"
+    },
+    {
+        Sname: "Priya",
+        roll_no: 2,
+        class: "X"
+    },
+    {
+        Sname: "Suresh",
+        roll_no: 3,
+        class: "XI"
+    }
+])
+
+// Task 1: Find the information about all teachers
+db.Teachers.find().pretty()
+
+// Task 2: Find the average salary of teachers in the Computer department
+db.Teachers.aggregate([
+    { $match: { dname: "Computer" } },
+    { $group: { _id: null, avgSalary: { $avg: "$salary" } } }
+]).pretty()
+
+// Task 3: Find the minimum and maximum salary of E&TC department teachers
+db.Teachers.aggregate([
+    { $match: { dname: "E&TC" } },
+    {
+        $group: {
+            _id: null,
+            minSalary: { $min: "$salary" },
+            maxSalary: { $max: "$salary" }
+        }
+    }
+]).pretty()
+
+// Task 4: Find the information about all teachers of Computer, IT, and E&TC department having salary greater than or equal to 10000/-
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] }, salary: { $gte: 10000 } }).pretty()
+
+// Task 5: Find the student information having roll_no = 2 or Sname = "xyz"
+db.Students.find({ $or: [{ roll_no: 2 }, { Sname: "xyz" }] }).pretty()
+
+// Task 6: Update the experience of teacher "Praveen" to 10 years (add new entry if not available)
+db.Teachers.updateOne({ Tname: "Praveen" }, { $set: { experience: 10 } }, { upsert: true })
+
+// Task 7: Update the department of all teachers working in IT department to "COMP"
+db.Teachers.updateMany({ dname: "IT" }, { $set: { dname: "COMP" } })
+
+// Task 8: Find the teachers' names and their experience from the Teachers collection
+db.Teachers.find({}, { _id: 0, Tname: 1, experience: 1 }).pretty()
+
+// Task 9: Using the Save() method, insert one entry in the department collection
+db.createCollection("department")
+db.department.insert({ dno: "MECH001", dname: "Mechanical" })
+
+// Task 10: Find the total salary of all teachers
+db.Teachers.aggregate([
+    {
+        $group: {
+            _id: null,
+            totalSalary: { $sum: "$salary" }
+        }
+    }
+]).pretty()
