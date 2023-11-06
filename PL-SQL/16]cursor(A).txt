@@ -1,0 +1,95 @@
+Cursor (Any Two)
+a) The bank manager has decided to activate all those accounts which were previously marked as 
+inactive for performing no transaction in last 365 days. Write a PL/SQ block (using implicit 
+cursor) to update the status of account, display an approximate message based on the no. of rows 
+affected by the update. (Use of %FOUND, %NOTFOUND, %ROWCOUNT)
+
+****************************************************************
+mysql> create database cursor1;
+Query OK, 1 row affected (0.03 sec)
+
+mysql> use cursor1;
+Database changed
+
+Database changed
+mysql> CREATE TABLE accounts (
+      account_id INT PRIMARY KEY,
+       account_status VARCHAR(10),
+       last_transaction_date DATE
+     );
+
+mysql> INSERT INTO accounts (account_id, account_status, last_transaction_date)
+     VALUES (1, 'Inactive', '2022-10-01');
+
+
+mysql> INSERT INTO accounts (account_id, account_status, last_transaction_date)
+     VALUES (2, 'Active', '2023-11-01');
+
+
+
+mysql> CREATE TABLE transactions (
+       transaction_id INT PRIMARY KEY,
+       account_id INT,
+       transaction_date DATE
+     );
+
+
+mysql> DELIMITER //
+mysql> CREATE TRIGGER update_account_status BEFORE INSERT ON transactions
+     FOR EACH ROW
+     BEGIN
+       UPDATE accounts
+       SET account_status = 'Active'
+       WHERE account_id = NEW.account_id;
+     END;
+     //
+mysql> DELIMITER ;
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE activate_inactive_accounts()
+     BEGIN
+       DECLARE v_account_id INT;
+       DECLARE v_last_transaction_date DATE;
+       DECLARE v_rows_updated INT DEFAULT 0;
+       DECLARE done INT DEFAULT 0;
+       DECLARE cur CURSOR FOR
+         SELECT account_id, last_transaction_date
+         FROM accounts
+         WHERE account_status = 'Inactive'
+         AND last_transaction_date < DATE_SUB(NOW(), INTERVAL 365 DAY);
+       DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+       OPEN cur;
+    
+       read_loop: LOOP
+         FETCH cur INTO v_account_id, v_last_transaction_date;
+         IF done = 1 THEN
+          LEAVE read_loop;
+         END IF;
+    
+        UPDATE accounts
+         SET account_status = 'Active'
+         WHERE account_id = v_account_id;
+    
+         SET v_rows_updated = v_rows_updated + 1;
+       END LOOP;
+    
+       CLOSE cur;
+    
+       IF v_rows_updated = 0 THEN
+         SELECT 'No inactive accounts were updated.';
+       ELSE
+         SELECT CONCAT(v_rows_updated, ' inactive accounts were updated.');
+       END IF;
+     END;
+     //
+
+mysql> DELIMITER ;
+mysql> CALL activate_inactive_accounts();
+
+
+mysql> select * from accounts;
+
+
+mysql> select * from transactions;
+
+

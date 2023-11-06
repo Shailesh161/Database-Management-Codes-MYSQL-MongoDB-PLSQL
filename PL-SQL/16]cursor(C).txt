@@ -1,0 +1,77 @@
+c) Write PL/SQL block using explicit cursor for following requirements: College has decided to 
+mark all those students detained (D) who are having attendance less than 75%. Whenever such 
+update takes place, a record for the same is maintained in the D_Stud table. create table 
+stud21(roll number(4), att number(4), status varchar(1))
+
+************************************************************************************************
+
+mysql> CREATE DATABASE college_db;
+
+mysql> USE college_db;
+
+mysql> CREATE TABLE stud21 (
+       roll INT(4),
+       att INT(4),
+       status CHAR(1)
+     );
+
+mysql> INSERT INTO stud21 (roll, att, status)
+     VALUES (1, 70, 'P');
+
+mysql> INSERT INTO stud21 (roll, att, status)
+     VALUES (2, 80, 'P');
+
+mysql> INSERT INTO stud21 (roll, att, status)
+     VALUES (3, 60, 'P');
+
+mysql> -- Add more student records as needed.
+
+mysql> CREATE TABLE D_Stud (
+       roll INT(4) PRIMARY KEY,
+       old_status CHAR(1),
+       new_status CHAR(1),
+       update_date DATE
+     );
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE update_student_statuses()
+     BEGIN
+       DECLARE done INT DEFAULT 0;
+       DECLARE student_roll INT;
+       DECLARE student_att INT;
+       DECLARE cur CURSOR FOR
+         SELECT roll, att FROM stud21 WHERE att < 75;
+       DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+       OPEN cur;
+    
+       read_loop: LOOP
+         FETCH cur INTO student_roll, student_att;
+    
+         IF done = 1 THEN
+           LEAVE read_loop;
+         END IF;
+    
+         -- Insert a record into the D_Stud table
+         INSERT INTO D_Stud (roll, old_status, new_status, update_date)
+         SELECT student_roll, status, 'D', CURDATE()
+         FROM stud21
+         WHERE roll = student_roll;
+    
+         -- Update the student status to "D"
+         UPDATE stud21
+         SET status = 'D'
+         WHERE roll = student_roll;
+       END LOOP;
+    
+       CLOSE cur;
+     END;
+     //
+
+mysql> DELIMITER ;
+mysql> select * from D_stud;
+
+
+mysql> CALL update_student_statuses();
+
+mysql> select * from D_stud;

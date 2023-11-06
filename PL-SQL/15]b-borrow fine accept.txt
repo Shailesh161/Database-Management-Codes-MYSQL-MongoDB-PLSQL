@@ -1,0 +1,67 @@
+15 .b) Write an SQL code block
+Borrow(Roll_no, Name, DateofIssue, NameofBook, Status)
+Fine(Roll_no,Date,Amt)
+Accept roll_no & name of book from user. Check the number of days (from date of issue), if 
+days are between 15 to 30 then fine amount will be Rs 5per day. If no. of days>30, per day fine 
+will be Rs 50 per day & for days less than 30, Rs. 5 per day. After submitting the book, status 
+will change from I to R. If condition of fine is true, then details will be stored into fine table. 
+Also handles the exception by named exception handler or user define exception handler. 
+
+
+
+
+mysql> create table Borrow(Roll_no int,Name varchar(50),DateofIssue date,NameofBook varchar(255), Status varchar(10));
+
+mysql> insert into Borrow(Roll_no, Name, DateofIssue, NameofBook, Status)
+    values(1,"Parth","2023-04-29","Trusharthpathik","I"),(2,"Prashant","2022-02-01","Computer_Network","I");
+
+mysql> create table Fine(Roll_no int,Date date,Amt int);
+
+DELIMITER //
+
+CREATE PROCEDURE ProcessBookReturn(
+    IN p_Roll_no INT,
+    IN p_NameofBook VARCHAR(255)
+)
+BEGIN
+    DECLARE v_DateofIssue DATE;
+    DECLARE v_CurrentDate DATE;
+    DECLARE v_NumDays INT;
+    DECLARE v_FineAmt DECIMAL(10, 2);
+
+    SELECT DateofIssue INTO v_DateofIssue
+    FROM Borrow
+    WHERE Roll_no = p_Roll_no AND NameofBook = p_NameofBook AND Status = 'I';
+
+    SET v_CurrentDate = CURDATE();
+
+    SET v_NumDays = DATEDIFF(v_CurrentDate, v_DateofIssue);
+
+    IF v_NumDays > 30 THEN
+        SET v_FineAmt = v_NumDays * 50;
+    ELSE
+        SET v_FineAmt = v_NumDays * 5;
+    END IF;
+
+    UPDATE Borrow
+    SET Status = 'R'
+    WHERE Roll_no = p_Roll_no AND NameofBook = p_NameofBook;
+
+    IF v_NumDays > 15 THEN
+        INSERT INTO Fine (Roll_no, Date, Amt)
+        VALUES (p_Roll_no, v_CurrentDate, v_FineAmt);
+    END IF;
+
+    SELECT 'Fine Amount: ' AS Message, v_FineAmt AS FineAmount, 'Status: R' AS BookStatus;
+END;
+//
+DELIMITER ;
+
+mysql> call ProcessBookReturn(1,"Trusharthpathik");
+
+mysql> call ProcessBookReturn(2,"Computer_Network");
+
+mysql> select * from Fine;
+
+
+

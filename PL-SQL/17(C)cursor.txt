@@ -1,0 +1,119 @@
+17(C)c)Write the PL/SQL block for following requirements using parameterized Cursor: Consider 
+table EMP(e_no, d_no, Salary), department wise average salary should be inserted into new 
+table dept_salary(d_no, Avg_salary)
+
+**************************************************************************************
+
+mysql> CREATE DATABASE 17c;
+mysql> USE 17c;
+Database changed
+mysql> CREATE TABLE EMP (
+    ->     e_no INT,
+    ->     d_no INT,
+    ->     Salary DECIMAL(10, 2)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> CREATE TABLE dept_salary (
+    ->     d_no INT,
+    ->     Avg_salary DECIMAL(10, 2)
+    -> );
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> -- Insert sample data into the EMP table
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> INSERT INTO EMP (e_no, d_no, Salary)
+    -> VALUES
+    ->     (1, 101, 5000.00),
+    ->     (2, 102, 6000.00),
+    ->     (3, 101, 5500.00),
+    ->     (4, 102, 6200.00),
+    ->     (5, 103, 7000.00);
+Query OK, 5 rows affected (0.03 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+mysql> DELIMITER //
+mysql>
+mysql> CREATE PROCEDURE CalculateDeptAverageSalary()
+    -> BEGIN
+    ->     DECLARE done INT DEFAULT 0;
+    ->     DECLARE dno INT;
+    ->     DECLARE total_salary DECIMAL(10, 2);
+    ->     DECLARE avg_salary DECIMAL(10, 2);
+    ->     DECLARE cur CURSOR FOR
+    ->         SELECT DISTINCT d_no FROM EMP;
+    ->
+    ->     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    ->
+    ->     OPEN cur;
+    ->
+    ->     -- Create the dept_salary table if it doesn't exist
+    ->     CREATE TABLE IF NOT EXISTS dept_salary (
+    ->         d_no INT,
+    ->         Avg_salary DECIMAL(10, 2)
+    ->     );
+    ->
+    ->     department_loop: LOOP
+    ->         FETCH cur INTO dno;
+    ->         IF done = 1 THEN
+    ->             LEAVE department_loop;
+    ->         END IF;
+    ->
+    ->         -- Calculate the average salary for the department
+    ->         SELECT AVG(Salary) INTO avg_salary FROM EMP WHERE d_no = dno;
+
+    ->
+    ->         -- Insert the department and its average salary into dept_salary table
+    ->         INSERT INTO dept_salary (d_no, Avg_salary) VALUES (dno, avg_salary);
+    ->     END LOOP;
+    ->
+    ->     CLOSE cur;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.03 sec)
+
+mysql>
+mysql> DELIMITER ;
+mysql> select * from EMP;
++------+------+---------+
+| e_no | d_no | Salary  |
++------+------+---------+
+|    1 |  101 | 5000.00 |
+|    2 |  102 | 6000.00 |
+|    3 |  101 | 5500.00 |
+|    4 |  102 | 6200.00 |
+|    5 |  103 | 7000.00 |
++------+------+---------+
+5 rows in set (0.00 sec)
+
+mysql> select * from dept_salary;
+Empty set (0.00 sec)
+
+mysql> -- Call the stored procedure to calculate and insert department-wise average salaries
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> CALL CalculateDeptAverageSalary();
+Query OK, 0 rows affected (0.01 sec)
+
+mysql> select * from EMP;
++------+------+---------+
+| e_no | d_no | Salary  |
++------+------+---------+
+|    1 |  101 | 5000.00 |
+|    2 |  102 | 6000.00 |
+|    3 |  101 | 5500.00 |
+|    4 |  102 | 6200.00 |
+|    5 |  103 | 7000.00 |
++------+------+---------+
+5 rows in set (0.00 sec)
+
+mysql> select * from dept_salary;
++------+------------+
+| d_no | Avg_salary |
++------+------------+
+|  101 |    5250.00 |
+|  102 |    6100.00 |
+|  103 |    7000.00 |
++------+------------+
+3 rows in set (0.00 sec)

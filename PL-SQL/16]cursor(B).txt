@@ -1,0 +1,58 @@
+b)Organization has decided to increase the salary of employees by 10% of existing salary, who 
+are having salary less than average salary of organization, Whenever such salary updates takes 
+place, a record for the same is maintained in the increment_salary table.
+***************************************************************************************************************
+
+mysql> USE organization_db;
+
+mysql> CREATE TABLE employees (
+       employee_id INT PRIMARY KEY,
+       employee_name VARCHAR(50),
+       salary DECIMAL(10, 2)
+    );
+
+mysql> INSERT INTO employees (employee_id, employee_name, salary)
+     VALUES (1, 'Employee1', 50000.00);
+
+
+mysql> INSERT INTO employees (employee_id, employee_name, salary)
+     VALUES (2, 'Employee2', 60000.00);
+
+mysql> INSERT INTO employees (employee_id, employee_name, salary)
+    VALUES (3, 'Employee3', 45000.00);
+
+mysql> -- Add more employee records as needed.
+
+mysql> CREATE TABLE increment_salary (
+       update_id INT AUTO_INCREMENT PRIMARY KEY,
+       employee_id INT,
+       previous_salary DECIMAL(10, 2),
+       new_salary DECIMAL(10, 2),
+       update_date DATE
+     );
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE update_salaries()
+     BEGIN
+       DECLARE avg_salary DECIMAL(10, 2);
+       SELECT AVG(salary) INTO avg_salary FROM employees;
+       -- Update salaries and insert records into increment_salary table in a single query
+       INSERT INTO increment_salary (employee_id, previous_salary, new_salary, update_date)
+       SELECT employee_id, salary, salary * 1.1, CURDATE()
+       FROM employees
+       WHERE salary < avg_salary;
+       -- Update salaries directly in the employees table
+       UPDATE employees
+       SET salary = salary * 1.1
+       WHERE salary < avg_salary;
+     END;
+     //
+
+mysql> DELIMITER ;
+mysql> select * from employees;
+
+
+mysql> CALL update_salaries();
+
+
+mysql> select * from employees;

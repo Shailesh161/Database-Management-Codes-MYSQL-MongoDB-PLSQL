@@ -1,0 +1,106 @@
+a) The bank manager has decided to activate all those accounts which were previously marked as 
+inactive for performing no transaction in last 365 days. Write a PL/SQ block (using implicit 
+cursor) to update the status of account, display an approximate message based on the no. of rows 
+affected by the update. (Use of %FOUND, %NOTFOUND, %ROWCOUNT)
+*************************************************
+
+
+mysql> CREATE DATABASE RollCallDB;
+Query OK, 1 row affected (0.01 sec)
+
+mysql> USE RollCallDB;
+Database changed
+mysql>
+mysql> CREATE TABLE O_RollCall (
+    ->   roll_id INT PRIMARY KEY,
+    ->   data VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql>
+mysql> CREATE TABLE N_RollCall (
+    ->   roll_id INT PRIMARY KEY,
+    ->   data VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> INSERT INTO N_RollCall (roll_id, data)
+    -> VALUES (1, 'Data1');
+Query OK, 1 row affected (0.03 sec)
+
+mysql> INSERT INTO N_RollCall (roll_id, data)
+    -> VALUES (2, 'Data2');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> INSERT INTO N_RollCall (roll_id, data)
+    -> VALUES (3, 'Data3');
+Query OK, 1 row affected (0.00 sec)
+
+mysql> DELIMITER //
+mysql> CREATE PROCEDURE MergeData()
+    -> BEGIN
+    ->   DECLARE v_roll_id INT;
+    ->   DECLARE v_data VARCHAR(50);
+    ->
+    ->   DECLARE done INT DEFAULT 0;
+    ->
+    ->   -- Cursor to select data from N_RollCall
+    ->   DECLARE cur CURSOR FOR
+    ->     SELECT roll_id, data FROM N_RollCall;
+    ->
+    ->   DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    ->
+    ->   OPEN cur;
+    ->   read_loop: LOOP
+    ->     FETCH cur INTO v_roll_id, v_data;
+    ->     IF done = 1 THEN
+    ->       LEAVE read_loop;
+    ->     END IF;
+    ->
+    ->     -- Check if the data with the same roll_id exists in O_RollCall
+    ->     IF NOT EXISTS (SELECT 1 FROM O_RollCall WHERE roll_id = v_roll_id) THEN
+    ->       -- Insert the data into O_RollCall
+    ->       INSERT INTO O_RollCall (roll_id, data) VALUES (v_roll_id, v_data);
+    ->     END IF;
+    ->   END LOOP;
+    ->   CLOSE cur;
+    -> END;
+    -> //
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> DELIMITER ;
+mysql> select * from N_RollCall;
++---------+-------+
+| roll_id | data  |
++---------+-------+
+|       1 | Data1 |
+|       2 | Data2 |
+|       3 | Data3 |
++---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from O_RollCall;
+Empty set (0.00 sec)
+
+mysql> CALL MergeData();
+Query OK, 0 rows affected (0.03 sec)
+
+mysql> select * from N_RollCall;
++---------+-------+
+| roll_id | data  |
++---------+-------+
+|       1 | Data1 |
+|       2 | Data2 |
+|       3 | Data3 |
++---------+-------+
+3 rows in set (0.00 sec)
+
+mysql> select * from O_RollCall;
++---------+-------+
+| roll_id | data  |
++---------+-------+
+|       1 | Data1 |
+|       2 | Data2 |
+|       3 | Data3 |
++---------+-------+
+3 rows in set (0.00 sec)

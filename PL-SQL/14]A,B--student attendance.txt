@@ -1,0 +1,58 @@
+a) Consider table Stud(Roll, Att,Status)
+Write a PL/SQL block for following requirement and handle the exceptions. Roll no. of student 
+will be entered by user. Attendance of roll no. entered by user will be checked in Stud table. If 
+attendance is less than 75% then display the message “Term not granted” and set the status in 
+stud table as “D”. Otherwise display message “Term granted” and set the status in stud table as 
+“ND”
+b) Write a PL/SQL block for following requirement using user defined exception handling. The 
+account_master table records the current balance for an account, which is updated whenever, any 
+deposits or withdrawals takes place. If the withdrawal attempted is more than the current balance 
+held in the account. The user defined exception is raised, displaying an appropriate message. 
+Write a PL/SQL block for above requirement using user defined exception handling.
+
+14a)
+create table student(Roll_no int,att int,Stat varchar(20));
+
+insert into student values(1,45,"G"),(2,80,"G"),(3,90,"G");
+
+DELIMITER $
+create procedure student_R(IN rno int)
+Begin
+DECLARE temp_rno int;
+Declare temp_att int;
+Declare temp_stat varchar(20);
+select att into temp_att from student where Roll_no=rno;
+if(temp_att<75) then
+select("Term Not Granted");
+update student set Stat="NG" where Roll_no=rno;
+elseif(temp_att>75) then
+select("Term Granted");
+else
+select("Invalid att");
+end if;
+end;
+$
+
+call student_R(1);
+
+14b)
+create table Bank(account_no int Primary key, Balance int);
+
+insert into Bank values (100,10000),(101,29000),(102,1000);
+
+DELIMITER $
+create procedure Withdraw(IN AMT int,Act_no int)
+Begin
+Declare temp_bal int;
+select Balance into temp_bal from Bank where account_no=Act_no;
+set temp_bal=temp_bal-AMT;
+if(temp_bal<0) then
+select('Insufficient balance');
+elseif(temp_bal>0) then
+update Bank set Balance=temp_bal where account_no=Act_no;
+end if;
+end;
+
+$
+
+call Withdraw(1000,101);

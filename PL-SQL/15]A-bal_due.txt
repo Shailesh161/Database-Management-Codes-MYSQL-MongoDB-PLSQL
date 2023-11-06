@@ -1,0 +1,34 @@
+15. 
+a) Write an SQL code block these raise a user defined exception where business rule is 
+voilated. BR for client_ master table specifies when the value of bal_due field is less than 0 
+handle the exception.
+
+************************************************************************************************************
+mysql>create database db;
+mysql> use db;
+
+DELIMITER //
+CREATE PROCEDURE CheckBalanceDue()
+BEGIN
+    DECLARE v_balance_due DECIMAL(10, 2);
+
+    SELECT bal_due INTO v_balance_due
+    FROM client_master;
+
+    IF v_balance_due < 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Business rule violation: Balance due is less than 0.';
+    ELSE
+        SELECT 'No business rule violation' AS Message;
+    END IF;
+END;
+//
+DELIMITER ;
+
+mysql> create table client_master(bal_due int);
+
+mysql> insert into client_master(bal_due)
+     values(200000);
+
+mysql> call CheckBalanceDue();
+
