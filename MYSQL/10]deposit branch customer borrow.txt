@@ -1,4 +1,4 @@
-10. Create the following tables. And Solve following queries by SQL
+--10. Create the following tables. And Solve following queries by SQL
 1. Deposit (actno,cname,bname,amount,adate)
 2. Branch (bname,city)
 3. Customers (cname, city)
