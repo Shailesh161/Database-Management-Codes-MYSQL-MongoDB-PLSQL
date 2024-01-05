@@ -1,1 +1,1 @@
-# DBMS-practical
+# DBMS-practical(MySQL,MongoDB,PL-SQL)
