@@ -1,1 +1,2 @@
-# DBMS-practical(MySQL,MongoDB,PL-SQL)
+# Database Management System. 
+#(MySQL,MongoDB,PL-SQL)
